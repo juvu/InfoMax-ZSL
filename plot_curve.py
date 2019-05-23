@@ -21,10 +21,6 @@ def get_acc(tfevents):
                 best_acc = v.simple_value
     return acc_list, best_acc
 
-# for tfevents in tfevents2:
-#     _, best_acc = get_acc(tfevents)
-#     print(tfevents, best_acc)
-
 def main():
     acc_list1, best_acc1 = get_acc(tfevents1)
     acc_list2, best_acc2 = get_acc(tfevents2)
