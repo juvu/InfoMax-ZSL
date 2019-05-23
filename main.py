@@ -21,7 +21,7 @@ from tensorboardX import SummaryWriter
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', default='FLO', help='FLO')
-    parser.add_argument('--dataroot', default='/home/zwl/data/zsl-data/data', help='path to dataset')
+    parser.add_argument('--dataroot', default='./data', help='path to dataset')
     parser.add_argument('--matdataset', default=True, help='Data in matlab format')
     parser.add_argument('--image_embedding', default='res101')
     parser.add_argument('--class_embedding', default='att')
@@ -114,7 +114,6 @@ def generate_syn_feature(netG, classes, attribute, num, opt):
     return syn_feature, syn_label
 
 def calc_gradient_penalty(netD, real_data, fake_data, input_att):
-    #print real_data.size()
     alpha = torch.rand(opt.batch_size, 1)
     alpha = alpha.expand(real_data.size())
     if opt.cuda:
@@ -148,24 +147,18 @@ def adaptive_clipping(g_u, g_m, netG):
         p.grad = g_u[i] + opt.mi_w * k * g_m[i]
 
 def train_D(netG, netD, optimizerD): 
-    ############################
-    # (1) Update D network: optimize WGAN-GP objective, Equation (2)
-    ###########################
-    for p in netD.parameters(): # reset requires_grad
-        p.requires_grad = True # they are set to False below in netG update
+    for p in netD.parameters(): 
+        p.requires_grad = True 
 
     for iter_d in range(opt.critic_iter):
         sample()
         netD.zero_grad()
-        # train with realG
-        # sample a mini-batch
         sparse_real = opt.resSize - input_res[1].gt(0).sum()
 
         criticD_real = netD(input_res, input_att)
         criticD_real = criticD_real.mean()
         criticD_real.backward(mone)
 
-        # train with fakeG
         noise.normal_(0, 1)
         fake = netG(noise, input_att)
         fake_norm = fake.data[0].norm()
@@ -215,11 +208,8 @@ def calc_mi(netM, x, z, z_, term='all'):
     return mi[term]
 
 def train_G(netG, netD, netM, optimizerG, mi_obj=False):
-    ############################
-    # (2) Update G network: optimize WGAN-GP objective, Equation (2)
-    ###########################
-    for p in netD.parameters(): # reset requires_grad
-        p.requires_grad = False # avoid computation
+    for p in netD.parameters(): 
+        p.requires_grad = False
 
     netG.zero_grad()
     noise.normal_(0, 1)
@@ -234,7 +224,6 @@ def train_G(netG, netD, netM, optimizerG, mi_obj=False):
     if mi_obj:
         if not opt.clipping:
             resample()
-            # mi = torch.mean(netM(fake, input_att)) - torch.log(torch.mean(torch.exp(netM(fake, input_att_))))
             if opt.visual_mi:
                 mi = calc_mi(netM, fake, input_res, input_res_)
             else:
@@ -256,7 +245,6 @@ def train_G(netG, netD, netM, optimizerG, mi_obj=False):
                 mi = calc_mi(netM, fake, input_res, input_res_)
             else:
                 mi = calc_mi(netM, fake, input_att, input_att_)
-            # mi = torch.mean(netM(fake, input_att)) - torch.log(torch.mean(torch.exp(netM(fake, input_att_))))
 
             optimizerG.zero_grad()
             errM = -mi
@@ -411,10 +399,8 @@ if __name__ == '__main__':
 
 
 
-    # train a classifier on seen classes, obtain \theta of Equation (4)
     pretrain_cls = classifier.CLASSIFIER(data.train_feature, util.map_label(data.train_label, data.seenclasses), data.seenclasses.size(0), opt.resSize, opt.cuda, 0.001, 0.5, 50, 100, opt.pretrain_classifier)
 
-    # freeze the classifier during the optimization
     for p in pretrain_cls.model.parameters(): # set requires_grad to False
         p.requires_grad = False
 
@@ -455,9 +441,7 @@ if __name__ == '__main__':
             if opt.mine or opt.val_mi:
                 print(f'mi = {np.mean(mi_list):.4f}')
 
-            # evaluate the model, set G to evaluation mode
             netG.eval()
-            # Generalized zero-shot learning
             if opt.gzsl:
                 syn_feature, syn_label = generate_syn_feature(netG, data.unseenclasses, data.attribute, opt.syn_num, opt)
                 train_X = torch.cat((data.train_feature, syn_feature), 0)
