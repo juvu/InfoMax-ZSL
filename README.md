@@ -16,15 +16,9 @@ After changing the path of saved weights of networks and log files, you can visu
 
 - Run `visualization.py`  to plot the distribution of generated features:
 
-<img src='./fig/visual_2d_cub.png' width='50%'>
+<div align='center'><img src='./fig/visual_2d_cub.png' width='50%'></div>
 
 - Run `plot_curve.py` to plot the accuracy curve (for ZSL) and H curve (for GZSL):
 
   <img src='./fig/curve_cub_g.png' width='49%'><img src='./fig/curve_cub_g.png' width='49%'>
-
-  ​
-
-  ​
-
-  ​
 
