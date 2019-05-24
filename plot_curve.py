@@ -4,8 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 dataset = 'awa'
-tfevents1 = glob.glob(f'./log/final/{dataset}_False_g/*')[0]
-tfevents2 = glob.glob(f'./log/final/{dataset}_True_g_KL/*')[0]
+# input your own path of tfevents file
+tfevents1 = glob.glob(f'./log/{dataset}_False_g/*')[0]
+tfevents2 = glob.glob(f'./log/{dataset}_True_g_KL/*')[0]
 
 def get_acc(tfevents):
     acc_list = []

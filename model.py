@@ -103,7 +103,6 @@ class MLP_CRITIC(nn.Module):
     def __init__(self, opt): 
         super(MLP_CRITIC, self).__init__()
         self.fc1 = nn.Linear(opt.resSize + opt.attSize, opt.ndh)
-        #self.fc2 = nn.Linear(opt.ndh, opt.ndh)
         self.fc2 = nn.Linear(opt.ndh, 1)
         self.lrelu = nn.LeakyReLU(opt.lrelu, True)
 
@@ -138,7 +137,6 @@ class MLP_2HL_Dropout_G(nn.Module):
         self.fc2 = nn.Linear(opt.ngh, opt.ngh)
         self.fc3 = nn.Linear(opt.ngh, opt.resSize)
         self.lrelu = nn.LeakyReLU(0.2, True)
-        #self.prelu = nn.PReLU()
         self.relu = nn.ReLU(True)
         self.dropout = nn.Dropout(p=0.5)
 
@@ -159,7 +157,6 @@ class MLP_3HL_G(nn.Module):
         self.fc3 = nn.Linear(opt.ngh, opt.ngh)
         self.fc4 = nn.Linear(opt.ngh, opt.resSize)
         self.lrelu = nn.LeakyReLU(0.2, True)
-        #self.prelu = nn.PReLU()
         self.relu = nn.ReLU(True)
 
         self.apply(weights_init)
@@ -179,7 +176,6 @@ class MLP_2HL_G(nn.Module):
         self.fc2 = nn.Linear(opt.ngh, opt.ngh)
         self.fc3 = nn.Linear(opt.ngh, opt.resSize)
         self.lrelu = nn.LeakyReLU(0.2, True)
-        #self.prelu = nn.PReLU()
         self.relu = nn.ReLU(True)
 
         self.apply(weights_init)
@@ -214,8 +210,6 @@ class MLP_G(nn.Module):
         self.fc1 = nn.Linear(opt.attSize + opt.nz, opt.ngh)
         self.fc2 = nn.Linear(opt.ngh, opt.resSize)
         self.lrelu = nn.LeakyReLU(opt.lrelu, True)
-        #self.prelu = nn.PReLU()
-        # self.relu = nn.ReLU(True)
         self.last = nn.Tanh() if opt.tanh else nn.ReLU(True)
 
         self.apply(weights_init)
@@ -230,12 +224,9 @@ class MLP_2048_1024_Dropout_G(nn.Module):
     def __init__(self, opt):
         super(MLP_2048_1024_Dropout_G, self).__init__()
         self.fc1 = nn.Linear(opt.attSize + opt.nz, opt.ngh)
-        #self.fc2 = nn.Linear(opt.ngh, opt.ngh)
         self.fc2 = nn.Linear(opt.ngh, 1024)
         self.fc3 = nn.Linear(1024, opt.resSize)
         self.lrelu = nn.LeakyReLU(0.2, True)
-        #self.prelu = nn.PReLU()
-        #self.relu = nn.ReLU(True)
         self.dropout = nn.Dropout(p=0.5)
 
         self.apply(weights_init)
@@ -252,12 +243,9 @@ class MLP_SKIP_G(nn.Module):
     def __init__(self, opt):
         super(MLP_SKIP_G, self).__init__()
         self.fc1 = nn.Linear(opt.attSize + opt.nz, opt.ngh)
-        #self.fc2 = nn.Linear(opt.ngh, opt.ngh)
-        #self.fc2 = nn.Linear(opt.ngh, 1024)
         self.fc2 = nn.Linear(opt.ngh, opt.resSize)
         self.fc_skip = nn.Linear(opt.attSize, opt.resSize)
         self.lrelu = nn.LeakyReLU(0.2, True)
-        #self.prelu = nn.PReLU()
         self.relu = nn.ReLU(True)
         
         self.apply(weights_init)
@@ -265,7 +253,6 @@ class MLP_SKIP_G(nn.Module):
     def forward(self, noise, att):
         h = torch.cat((noise, att), 1)
         h = self.lrelu(self.fc1(h))
-        #h = self.lrelu(self.fc2(h))
         h = self.relu(self.fc2(h))
         h2 = self.fc_skip(att)
         return h+h2

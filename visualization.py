@@ -28,10 +28,6 @@ def dimension_reduction(feature, n=2, method='pca'):
     if method == 'pca':
         pca = PCA(n_components=n, svd_solver='full')
         new_feature = pca.fit_transform(feature)
-    elif method == 'tsne':
-        new_feature = TSNE(n_components=n).fit_transform(feature)
-    elif method == 'first':
-        new_feature = feature[:, :2]
     return new_feature
 
 def get_real_feature(data):
@@ -75,12 +71,6 @@ def visual_2d(samples, label=0, comment=''):
         if label != 'all':
             X = X[y == label]
             y = y[y == label]
-        if opt.real:
-            num = len(y)
-        else:
-            pass
-            # X = X[:num]
-            # y = y[:num]
         if X.shape[1] > 2:
             print('performing dimension reduction...')
             X_ = dimension_reduction(X)
@@ -94,39 +84,6 @@ def visual_2d(samples, label=0, comment=''):
     plt.legend(list(netG.keys()), loc='upper right')
     plt.savefig(f'diagram/visual_2d_{opt.outname}_{label}_{comment}.jpg')
     plt.savefig(f'diagram/visual_2d_{opt.outname}_{label}_{comment}.pdf')
-
-def visual_kde(samples, comment=''):
-    N = len(data.unseenclasses)
-    scores = {}
-    for k, G in netG.items():
-        if G is not None:
-            scores[k] = np.zeros(N)
-    import time
-    for i in range(N):
-        start = time.time()
-        print(i)
-        X_real, y_real = samples[0]['Real'], samples[1]['Real']
-        cond = y_real == i
-        X_real, y_real = X_real[cond], y_real[cond]
-        kde = KernelDensity().fit(dimension_reduction(X_real))
-        for k, G in netG.items():
-            if G is not None:
-                X, y = samples[0][k], samples[1][k]
-                X = X[y == i]
-                scores[k][i] = np.exp(kde.score_samples(dimension_reduction(X)).mean())
-                print(k, scores[k][i])
-        end = time.time()
-        print(f'time elapsed: {end - start}')
-
-    plt.figure()
-    classes = np.arange(N)
-    for k, G in netG.items():
-        if G is not None:
-            plt.plot(classes, scores[k])
-    print(np.argsort(scores['GAN + MI'] - scores['GAN']))
-    plt.legend(list(netG.keys())[:-1])
-    plt.savefig(f'diagram/visual_kde{comment}.jpg')
-    plt.savefig(f'diagram/visual_kde{comment}.pdf')
 
 def get_reduced_data(samples, n=2, method='tsne', per_class=True, **kwarg):
     N = len(data.unseenclasses)
@@ -188,16 +145,14 @@ def load_reduced_data(n=2, method='tsne', per_class=True, **kwarg):
     for k, G in netG.items():
         X[k] = pickle.load(open(f'reduced/{opt.outname}_{method}_{n}_{k}.p', 'rb'))
         y[k] = pickle.load(open(f'reduced/{opt.outname}_{method}_{n}_{k}_y.p', 'rb'))
-        # X[k] = pickle.load(open(f'reduced/{method}_{n}_{k}_{per_class}.p', 'rb'))
-        # y[k] = pickle.load(open(f'reduced/{method}_{n}_{k}_y_{per_class}.p', 'rb'))
     return X, y
 
 def init_nets():
     netG = {}
+    # input your own file name
     netG['GAN'] = load_G('netG_80.pth', opt)
     netG['GAN + MI'] = load_G('netG_80_KL.pth', opt)
     netG['Real'] = None
-    # netG['GAN + vMI'] = load_G('netG_199_KL_visual_mi.pth', opt)
     return netG
 
 if __name__ == '__main__':
@@ -221,6 +176,3 @@ if __name__ == '__main__':
     else:
         X, y = gen_data()
         get_reduced_data((X, y), method='pca')
-
-    # visual_2d((X, y), label='all', comment='tsne')
-    # visual_2d((X, y), label=49, comment='tsne')
